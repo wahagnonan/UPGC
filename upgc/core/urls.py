@@ -1,0 +1,38 @@
+from django.urls import path
+from .views import (
+    APIRootView,
+    EmploiDuTempsDuJourAPIView,
+    InformationsListAPIView,
+    InformationDetailAPIView,
+    ListeAreasAPIView,
+    ListeRoomsAPIView,
+    ListeDomainesAPIView,
+    DetailDomaineAPIView,
+    ListeRessourcesAPIView,
+    EmploiRessourceAPIView,
+)
+
+urlpatterns = [
+    path('', APIRootView.as_view(), name='api-root'),
+    path('api/', APIRootView.as_view(), name='api-root-api'),
+    path('api/aujourdhui/', EmploiDuTempsDuJourAPIView.as_view(), name='emploi-jour'),
+    path('api/<int:jour>/<int:mois>/<int:annee>/', EmploiDuTempsDuJourAPIView.as_view(), name='emploi-date'),
+    path('aujourdhui/', EmploiDuTempsDuJourAPIView.as_view(), name='emploi-jour'),
+    path('<int:jour>/<int:mois>/<int:annee>/', EmploiDuTempsDuJourAPIView.as_view(), name='emploi-date'),
+    path('api/informations/', InformationsListAPIView.as_view(), name='informations-list'),
+    path('api/informations/<int:pk>/', InformationDetailAPIView.as_view(), name='information-detail'),
+    path('api/config/', ListeAreasAPIView.as_view(), name='config'),
+    path('api/rooms/', ListeRoomsAPIView.as_view(), name='rooms'),
+    path('api/domaines/', ListeDomainesAPIView.as_view(), name='domaines'),
+    path('api/domaines/<int:area_id>/', DetailDomaineAPIView.as_view(), name='domaine-detail'),
+    path('api/domaines/<int:area_id>/ressources/', ListeRessourcesAPIView.as_view(), name='ressources'),
+    path('api/domaines/<int:area_id>/ressources/<int:room_id>/edt/', EmploiRessourceAPIView.as_view(), name='ressource-emploi'),
+    path('informations/', InformationsListAPIView.as_view(), name='informations-list'),
+    path('informations/<int:pk>/', InformationDetailAPIView.as_view(), name='information-detail'),
+    path('config/', ListeAreasAPIView.as_view(), name='config'),
+    path('rooms/', ListeRoomsAPIView.as_view(), name='rooms'),
+    path('domaines/', ListeDomainesAPIView.as_view(), name='domaines'),
+    path('domaines/<int:area_id>/', DetailDomaineAPIView.as_view(), name='domaine-detail'),
+    path('domaines/<int:area_id>/ressources/', ListeRessourcesAPIView.as_view(), name='ressources'),
+    path('domaines/<int:area_id>/ressources/<int:room_id>/edt/', EmploiRessourceAPIView.as_view(), name='ressource-emploi'),
+]

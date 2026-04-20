@@ -6,3 +6,5 @@ djangorestframework
 requests
 beautifulsoup4
 python-decouple
+gunicorn
+Pillow 

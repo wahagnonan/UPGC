@@ -19,10 +19,18 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from django.core.management import call_command
+from django.http import HttpResponse
+
+def run_migrate(request):
+    call_command('migrate', verbosity=1)
+    return HttpResponse('Migrations terminées!')
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
     path('', include('core.urls')),
+    path('run-migrate/', run_migrate, name='run_migrate'),
 ]
 
 if settings.DEBUG:

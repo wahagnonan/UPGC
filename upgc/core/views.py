@@ -404,7 +404,7 @@ class ListeRoomsAPIView(APIView):
 class InformationsListAPIView(APIView):
     def get(self, request):
         try:
-            inclure_expirees = self._get_bool_param(request, 'inclure_expirees', True)
+            inclure_expirees = self._get_bool_param(request, 'inclure_expirees', False)
             limite = self._get_int_param(request, 'limite', 50)
             
             queryset = Information.objects.all()

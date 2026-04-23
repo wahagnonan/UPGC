@@ -15,14 +15,21 @@ from .serializers import (
     CoursSerializer,
     InformationSerializer,
 )
-from .data import AREAS, ROOMS_PAR_AREA, AREA_PAR_DEFAUT, AREAS_PAR_DEFAUT, CACHE_TIMEOUT
+from .data import AREAS, AREA_PAR_DEFAUT, AREAS_PAR_DEFAUT, CACHE_TIMEOUT
+from .sync_areas import (
+    get_areas,
+    get_rooms_for_area,
+    get_rooms_par_area,
+    get_all_rooms,
+    sync_areas_from_grr,
+)
 
 logger = logging.getLogger(__name__)
 
 
 def _get_room_nom(area_id, room_id):
     """Retourne le nom de la salle à partir de son ID"""
-    rooms = ROOMS_PAR_AREA.get(area_id, [])
+    rooms = get_rooms_for_area(area_id)
     for room in rooms:
         if room['id'] == room_id:
             return room['nom']
@@ -210,7 +217,7 @@ class EmploiDuTempsDuJourAPIView(APIView):
                 if room_nom:
                     tous_cours = [c for c in tous_cours if c.ressource == room_nom]
             elif room == 0 and area not in AREAS_PAR_DEFAUT:
-                rooms_noms = [r['nom'] for r in ROOMS_PAR_AREA.get(area, [])]
+                rooms_noms = [r['nom'] for r in get_rooms_for_area(area)]
                 tous_cours = [c for c in tous_cours if c.ressource in rooms_noms]
         
         cours_par_jour = {}
@@ -320,12 +327,12 @@ class ListeAreasAPIView(APIView):
         if area_id:
             try:
                 area = int(area_id)
-                rooms = ROOMS_PAR_AREA.get(area, [])
+                rooms = get_rooms_for_area(area)
             except Exception as e:
                 logger.error(f"Erreur récupération rooms: {e}")
         
         return Response({
-            'areas': AREAS,
+            'areas': get_areas(),
             'rooms': rooms,
             'timestamp': timezone.now().isoformat()
         }, status=status.HTTP_200_OK)
@@ -387,10 +394,7 @@ class ListeRoomsAPIView(APIView):
                     'timestamp': timezone.now().isoformat()
                 }, status=status.HTTP_200_OK)
         
-        rooms_2 = [{**r, 'area': 2} for r in ROOMS_PAR_AREA.get(2, [])]
-        rooms_16 = [{**r, 'area': 16} for r in ROOMS_PAR_AREA.get(16, [])]
-        
-        combined_rooms = rooms_2 + rooms_16
+        rooms = get_all_rooms()
         
         cache.set(cache_key, combined_rooms, 3600)
         
@@ -471,7 +475,7 @@ class InformationDetailAPIView(APIView):
 
 class ListeDomainesAPIView(APIView):
     def get(self, request):
-        domaines = [{'id': a['id'], 'nom': a['nom']} for a in AREAS]
+        domaines = [{'id': a['id'], 'nom': a['nom']} for a in get_areas()]
         return Response({
             'domaines': domaines,
             'total': len(domaines),
@@ -481,7 +485,7 @@ class ListeDomainesAPIView(APIView):
 
 class DetailDomaineAPIView(APIView):
     def get(self, request, area_id):
-        domaine = next((a for a in AREAS if a['id'] == area_id), None)
+        domaine = next((a for a in get_areas() if a['id'] == area_id), None)
         if not domaine:
             return Response({
                 'erreur': 'Domaine non trouvé',
@@ -508,7 +512,7 @@ class DetailDomaineAPIView(APIView):
             if cached_rooms:
                 return cached_rooms
         
-        rooms = ROOMS_PAR_AREA.get(area_id, [])
+        rooms = get_rooms_for_area(area_id)
         
         if rooms:
             cache.set(cache_key, rooms, 3600)
@@ -518,7 +522,7 @@ class DetailDomaineAPIView(APIView):
 
 class ListeRessourcesAPIView(APIView):
     def get(self, request, area_id):
-        domaine = next((a for a in AREAS if a['id'] == area_id), None)
+        domaine = next((a for a in get_areas() if a['id'] == area_id), None)
         if not domaine:
             return Response({
                 'erreur': 'Domaine non trouvé',
@@ -540,7 +544,7 @@ class ListeRessourcesAPIView(APIView):
                     'timestamp': timezone.now().isoformat()
                 }, status=status.HTTP_200_OK)
         
-        rooms = ROOMS_PAR_AREA.get(area_id, [])
+        rooms = get_rooms_for_area(area_id)
         
         if rooms:
             cache.set(cache_key, rooms, 3600)
@@ -555,7 +559,7 @@ class ListeRessourcesAPIView(APIView):
 
 class EmploiRessourceAPIView(APIView):
     def get(self, request, area_id, room_id):
-        domaine = next((a for a in AREAS if a['id'] == area_id), None)
+        domaine = next((a for a in get_areas() if a['id'] == area_id), None)
         if not domaine:
             return Response({
                 'erreur': 'Domaine non trouvé',
@@ -563,7 +567,7 @@ class EmploiRessourceAPIView(APIView):
                 'timestamp': timezone.now().isoformat()
             }, status=status.HTTP_404_NOT_FOUND)
         
-        rooms = ROOMS_PAR_AREA.get(area_id, [])
+        rooms = get_rooms_for_area(area_id)
         room_exists = any(r['id'] == room_id for r in rooms)
         if not room_exists:
             return Response({

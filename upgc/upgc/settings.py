@@ -28,6 +28,16 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=[], cast=Csv())
+ALLOWED_HOSTS += ['192.168.1.106', 'localhost', '127.0.0.1']
+
+# Remove duplicates while preserving order
+seen = set()
+unique = []
+for host in ALLOWED_HOSTS:
+    if host not in seen:
+        seen.add(host)
+        unique.append(host)
+ALLOWED_HOSTS = unique
 
 
 # Application definition
